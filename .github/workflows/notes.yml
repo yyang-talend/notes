@@ -1,4 +1,4 @@
-name: Notes CI
+name: Notes CD
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   page-generator:
-    name: Generating pages
+    name: Generate and Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,16 +17,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '14'
-      - name: npm install, build
+      - name: NPM build
         run: |
           npm install
           npm run build
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
-        with:
-          name: notes
-          path: dist
-      - name: Deploy to Staging server
+      - name: Deploy to server
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
@@ -35,5 +30,3 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: "/var/www/html"
-
- 
