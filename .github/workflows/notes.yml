@@ -1,0 +1,29 @@
+name: Notes CI
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  page-generator:
+    name: Generating pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - name: npm install, build
+        run: |
+          npm install
+          npm run build
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v3
+        with:
+          name: notes
+          path: dist
+ 
