@@ -1,0 +1,47 @@
+<% if (current_path !== '/') { %>
+  <section class="section main article">
+<% } else { %>
+  <section class="section main homepage">
+<% } %>
+    <div class="container">
+
+<div class="columns">
+  <div class="column is-8 is-6-widescreen is-offset-1-widescreen">
+    <% if (!isHomepage) { %>
+      <% include breadcrumb %>
+      <% include pre-next %>
+    <% } %>
+    <article class="content">
+      <% if (isHomepage) { %>
+        <h1 class="title"><%= site %></h1>
+      <% } else { %>
+        <h1 class="title"><%= page_title %></h1>
+      <% } %>
+      <div class="page-meta">
+        <p></p>
+      </div>
+      <%= content %>
+    </article>
+    <% include pre-next %>
+    <div class="page-info">
+      <p></p>
+      <p>分享本文 <span class="social-share"></span></p>
+    </div>
+  </div>
+
+  <div class="column is-3 is-offset-1">
+    <% include chapters %>
+  </div>
+</div>
+
+<% if (typeof hasComments === 'undefined' || !hasComments) { %>
+<% } else { %>
+<div class="columns">
+  <div class="column is-8 is-6-widescreen is-offset-1-widescreen">
+    <div id="disqus_thread"></div>
+  </div>
+</div>
+<% } %>
+
+    </div>
+  </section>

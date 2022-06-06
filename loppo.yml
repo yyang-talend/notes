@@ -1,10 +1,15 @@
+# directory of document source files
 dir: docs
+# output directory of generated documents
 output: dist
+# site name
 site: Notes
-theme: wangdoc
-customization: false
+# use customized theme
+customization: true
+# dir to put customized theme in your project
 themeDir: loppo-theme
 direction: ltr
 id: notes
+author: yyang-talend
 hasComments: true
-isTutorial: true
+isTutorial: false
