@@ -14,7 +14,7 @@
   <div class="navbar-menu" id="navMenu">
     <div class="navbar-end">
       <div class="navbar-item">
-        <form action="https://sourcegraph.com/search" target="_blank" method="get" onsubmit="this.q.value = 'repo:^github\.com/wangdoc/<%= id %>-tutorial$ ' + this.origin.value">
+        <form action="https://sourcegraph.com/search" target="_blank" method="get" onsubmit="this.q.value = 'repo:^github\.com/<%= author %>/<%= id %>$ ' + this.origin.value">
         <p class="control has-icons-right">
           <input class="input" type="text" name="origin" placeholder="搜索...">
           <span class="icon is-small is-right">
