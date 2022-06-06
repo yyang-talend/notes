@@ -1,0 +1,10 @@
+dir: docs
+output: dist
+site: Notes
+theme: wangdoc
+customization: false
+themeDir: loppo-theme
+direction: ltr
+id: notes
+hasComments: true
+isTutorial: true
