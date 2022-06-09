@@ -43,7 +43,7 @@ this.page.identifier = l.pathname; // Replace PAGE_IDENTIFIER with your page's u
 
 (function() { // DON'T EDIT BELOW THIS LINE
 var d = document, s = d.createElement('script');
-s.src = 'https://wangdoc-<%= id %>.disqus.com/embed.js';
+s.src = 'https://yongshengy-<%= id %>.disqus.com/embed.js';
 s.setAttribute('data-timestamp', +new Date());
 (d.head || d.body).appendChild(s);
 })();
@@ -61,7 +61,7 @@ var shareOpts = {
   description         : '', // 描述, 默认读取head标签：<meta name="description" content="PHP弱类型的实现原理分析" />
   image               : '', // 图片, 默认取网页中第一个img标签
   sites               : ['weibo', 'wechat', 'qq', 'qzone', 'twitter', 'facebook'], // 启用的站点
-  origin              : 'WangDoc_com',
+  origin              : 'yongshengy.com',
   disabled            : [], // 禁用的站点
   wechatQrcodeTitle   : "微信", // 微信二维码提示文字
   wechatQrcodeHelper  : '扫一下二维码，分享到微信。'
