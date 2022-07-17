@@ -268,7 +268,85 @@ Java 内存模型规定了JVM如何使用计算机内存RAM
 5. JMM的规范对应的是JSR133,现在由Java语言规范和JVM规范维护
 6. 内存屏障的分类与作用
 
+## JVM启动参数
 
+### 启动参数
+1. 添加启动参数可以调整JVM的运行状态，内存管理，GC算法，添加调试信息等
+2. `java [options] classname [args]`: options - VM options, 'jps -v' 可查看； args - main函数的参数 Program arguments, `jps -m`
+3. 参数分类
+- 以`-`开头为标准参数
+- 以`-X`开头为非标准参数，基本是传给JVM的
+- 以`-XX:`开头为非稳定参数，专门控制JVM的行为，跟具体JVM实现有关
+- `-XX:+-Flags`形式， +—是对布尔值进行开关
+- `-XX:key=value`形式，指定某个选项的值
+- `-Dkey=value`, 系统属性，也可以叫环境变量，是直接给JVM传递指定的系统属性参数
+- args: 命令行参数
+4. 查看默认的所有系统属性： `java -XshowSettings:properties -version` 
+5. 查看当前JDK/JRE的默认显示语言设置：`java -XshowSettings:locale -version`
+6. https://www.oracle.com/java/technologies/javase/vmoptions-jsp.html
+
+### Agent
+1. Agent是可以通过无侵入的方式做一些事情，比如AOP代码，执行统计等，权限非常大
+2. 设置agent的语法
+- `-agentlib:libname[=options]` 启用native方式的agent
+- `-agentlib:pathname[=options]` 启用native方式的agent
+- `-javaagent:jarpath[=options]` 启用外部的agent库，比如pinpoint.jar等等
+- `-Xnoagent` 禁用所有agent
+- 例子：`JAVA_OPTS="-agentlib:hprof=cpu=samples,file=cpu.samples.log"`开启CPU使用时间抽样分析，hprof是JDK内置的一个性能分析器，cpu=samples会抽样在各个方法消耗的时间占比，Java进程退出后会将分析结果输出到文件
+
+### JVM运行模式
+1. -server:jvm使用server模式，启动速度慢，但是运行性能和内存管理效率高
+2. -client：启动速度快，但是性能和内存管理效率不高，一般用于客户端程序和开发调试
+3. JVM加载字节码后，可以解释执行，也可以编译成本地代码再执行，-Xint: 强制JVM解释执行字节码，效率低10倍或者更多；-Xcomp：强制编译成本地代码执行；-Xmixed:混合模式，将解释模式和编译模式混合使用，由JVM决定，这个是默认模式，java -version可以看到mixed mode信息
+
+### 堆内存
+1. JVM内存：堆 + 栈 + 非堆 + 堆外内存 
+2. -Xmx: 最大堆内存
+3. -Xms: 堆内存初始大小，是GC先规划好，用到才分配，专用服务器上要保持 -Xms -Xmx一致，如果不一致，堆内存扩容可能会导致性能抖动，专用服务器是指只有一个java程序运行
+4. -Xmn: 等价于-XX:NewSize 使用G1垃圾收集器不应该设置该选项，某些业务场景下可以设置，建议为-Xmx的1/2 - 1/4 
+5. -XX:MaxPermSize=size: JDK7之前使用 永久代，Java8默认允许的Meta空间无限大，此参数无效
+6. -XX:MaxMetaspaceSize=size: Java8默认不限制Meta空间，一般不允许设置该选项
+7. -XX:MaxDirectMemorySize=size 系统可以使用的最大堆外内存，这个参数跟-Dsun.nio.MaxDirectMemorySize一样
+8. -Xss: 每个线程栈的字节数，例如-Xss1m 线程栈为1MB，和-XX：ThreadStackSize=1m一样
+
+### 堆外内存
+1. 内存
+- GC Heap = Java Heap + PermGen （JDK <=7）
+- Java Thread = Java Thread count * Xss 
+- other thread stack = other thread count * stack size 
+- Code Cache等
+- 除了上面这些，还有诸如HotSpot VM自己的StringTable, SymbolTable, SystemDictionary, CardTable, HandleArea, JNIHandleBlock等许多数据结构常驻内存的，还有JIT编译器，GC等工作时候额外的临时分配Native Memory, JDK类库或者第三方类库可能分配的Native Memory
+- 一般来说Java NIO使用的Direct-X-Buffer例如DirecByteBuffer所分配的native memory，这个地方如果使用了netty之类的框架，会产生大量的堆外内存
+
+### 最佳实现
+1. 考虑堆外内存，所以设置xms,xmx的时候要留有余地
+2. 推荐配置可用内存的70%-80%最好，比如8G物理内存，系统自身使用一点，还有7.5G，那么建议配置-Xmx6g: 7.5g*0.8=6G, 如果明确知道堆外内存，还需要进一步降低这个值
+3. 运维可能出现的问题，一个8G的云主机，为了使用最大内存，xmx直接设置为8G，这样的话，堆外内存就没有空间了，-Xmx不包含堆外内存
+
+### GC日志相关参数
+1. 在生产环境或性能测试环境里，分析和判断问题的重要数据来源就是GC日志
+2. -verbose:gc: 和其他gc参数组合使用，在GC日志中输出详细的GC信息，包括每次GC前后各个内存池的大小，堆内存的大小，提升到老年代的大小，以及消耗的时间。这个参数支持在运行过程中动态开关，比如使用jcmd,jinfo以及使用jmx技术的客户端
+3. -XX:+PrintGCDetails和-XX:+PrintGCTimeStamps:打印GC细节与发生时间
+4. -Xloggc:file: 和-verbose:gc类似，只是将每次GC事件的相关情况记录到一个文件中，文件的位置最好在本地，以避免网络的潜在问题，若与verbose:gc命令同时出现在命令行中，以-Xloggc为准
+
+```
+export JAVA_OPTS="-Xms28g -Xmx28g -Xss1m \
+-verbosegc -XX:+UseG1GC -XX:MaxGCPauseMillis=200 \
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/usr/local/"
+```
+
+### 垃圾收集器相关参数
+1. -XX:+UseG1GC: 使用G1垃圾回收器
+2. -XX:+UseConcMarkSweepGC: 使用CMS垃圾回收器
+3. -XX:+UseSerialGC: 使用串行垃圾回收器
+4. -XX:+UseParallelGC: 使用并行垃圾回收器
+
+### 特殊情况执行脚本的参数
+1. -XX:+HeapDumpOnOutOfMemoryError: 当OOM产生，即内存溢出时，自动dump堆内存
+2. -XX:HeapDumpPath 内存溢出时dump文件的目录，如果没有指定默认是启动java的工作目录
+3. -XX:OnOutofMemoryError: 抛出OOM时执行的脚本
+4. -XX:OnError: 发生致命错误时执行的脚本，比如curl执行一个报警的url，或者一个脚本记录下
+5. -XX:ErrorFile=filename: 致命错误的日志文件名
 
 
 
